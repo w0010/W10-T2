@@ -1,0 +1,81 @@
+/* CustomNodes.css */
+.react-flow__handle {
+    background: none !important;
+    border: none !important;
+}
+
+.react-flow__handle::before {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    content: "";
+    display: block;
+    width: 16px;
+    height: 16px;
+    background: var(--bg-color);
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    z-index: 1; /* Place shape behind the content and handles */
+}
+
+.node * {
+    color: var(--text-color)
+}
+
+.node h4 {
+	font-size: 1.4rem ;
+	font-variation-settings: "wght" 700, "wdth" 80, "slnt" 0;
+	letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.node p {
+    font-size: 1em;
+    font-variation-settings: "wght" 400, "wdth" 94, "slnt" 0;
+    letter-spacing: 0.02em;
+    line-height: 1.3em;
+}
+
+.node {
+    border: 2px solid white;
+    display: flex;
+    max-width: 40vw;
+    padding: 32px;
+    position: relative;
+    z-index: 1;
+}
+
+.basic {
+    background: var(--bg-color);
+}
+
+.circle {
+    background: var(--bg-color);
+    border-radius: 50%;
+}
+
+.circle, .diamond {
+    align-items: center;
+}
+
+.circle, .diamond, .wavy {
+    aspect-ratio: 1 / 1;
+}
+
+.diamond::before, .wavy::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-color);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1; /* Place shape behind the content and handles */
+}
+
+.diamond::before {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.wavy::before {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 85%, 0% 100%);
+}

@@ -1,0 +1,212 @@
+/* global.css */
+:root {
+    --font: "transducer-variable", sans-serif;
+    --mono: "";
+    --margin: 128px;
+    --padding: 32px;
+    --gap: 64px;
+    --header-height: 128px;
+    --black: hsla(198, 7%, 6%, 1);
+    --dark: hsla(216, 7%, 11%, 1);
+    --grey: hsla(202, 5%, 61%, 1);
+    --light: hsla(0, 0%, 90%, 1);
+    --white: hsla(0, 0%, 90%, 1);
+    --bright-color: rgb(0, 255, 157);
+    --bright-color-faded: rgba(0, 255, 157, 0.25);
+    --deep-color: rgb(255, 0, 123);
+    --deep-color-faded: rgba(255, 0, 123, 0.25);
+}
+
+[data-theme='light'] {
+    --bg-color: var(--light);
+    --text-color: var(--dark);
+    --bg-color2: var(--white);
+    --text-color2: var(--black);
+    --neon-color: var(--deep-color);
+    --faded-color: var(--deep-color-faded);
+}
+
+[data-theme='dark'] {
+    --bg-color: var(--dark);
+    --text-color: var(--light);
+    --bg-color2: var(--black);
+    --text-color2: var(--white);
+    --neon-color: var(--bright-color);
+    --faded-color: var(--bright-color-faded);
+}
+
+* {
+    box-sizing: border-box
+}
+
+a {
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+body {
+    background-color: var(--dark);
+    color: var(--light);
+    font-family: var(--font);
+	font-size: 20px;
+	font-variation-settings: "wght" 400, "wdth" 100, "slnt" 0;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body .theme-provider {
+    color: var(--text-color);
+    transition: 0.4s;
+}
+
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+
+figure {
+    margin: 0
+}
+
+h1 {
+    color: var(--text-color);
+    font-size: 1.4em;
+	font-variation-settings: "wght" 800, "wdth" 200, "slnt" 0;
+    letter-spacing: 0.015em;
+    text-transform: uppercase;
+}
+
+h1 span {
+    display: block;
+    font-size: 0.57em;
+	font-variation-settings: "wght" 700, "wdth" 200, "slnt" 0;
+    letter-spacing: 0.62em;
+}
+
+h2 {
+    border-left: 1px solid var(--text-color);
+    font-size: 1.89em;
+    font-variation-settings: "wght" 600, "wdth" 100, "slnt" 0;
+    letter-spacing: 0.33vw;
+    text-transform: uppercase;
+}
+
+h3 {
+    font-size: 1.7em;
+    font-variation-settings: "wght" 500, "wdth" 100, "slnt" -10;
+    letter-spacing: 0.05em;    
+}
+
+h3 span {
+    display: block;
+    font-size: calc(1.5rem + 4vmin);
+    font-variation-settings: "wght" 400, "wdth" 100, "slnt"-10;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.number {
+    --wdth-value: calc(50 + (150 * (1 - clamp(0, (100vw - 100vh) / 100vw, 1))));
+	/* adjust width according to aspect ratio */
+	position: relative;
+}
+
+.number::before {
+    color: var(--text-color);
+	content: attr(data-number);
+	/* Retrieve the value from the data-number attribute */
+	left: var(--padding);
+	opacity: .075;
+    font-family: "Orbitron", monospace;
+	font-size: calc(12vw + 16vmin);
+    font-weight: 900;
+    position: absolute;
+	top: calc(0.25 * var(--margin));
+	transform: rotate(180deg);
+	writing-mode: vertical-lr;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+}
+
+p {
+    font-variation-settings: "wght" 400, "wdth" 100, "slnt" 0;
+    line-height: 1.6em;
+}
+
+section {
+    display: flex;
+    flex-direction: column;
+    padding: var(--header-height) 0;
+}
+
+section > :is(a, abbr, article, h1, h2, h3, p) {
+    margin-left: var(--margin);
+    margin-right: var(--margin);
+}
+
+section :is(a, abbr, h2, h3, p, strong) {
+    padding-left: var(--padding);
+    padding-right: var(--padding);
+}
+
+strong {
+    display: block;
+    font-size: 1.7em;
+    font-variation-settings: "wght" 500, "wdth" 100, "slnt" -10;
+    letter-spacing: 0.05em;
+    font-weight: unset;
+    text-transform: uppercase;
+}
+
+ul {
+    list-style: none;
+    margin: 0;
+}
+
+video {
+    border-radius: 8px;
+    width: 100%;
+    height: inherit;
+}
+
+@media (min-width: 2000px) {
+    :root {
+        --margin: 256px;
+    }
+}
+
+@media (max-width: 1440px) {
+    :root {
+        --margin: 48px;
+        --padding: 24px;
+        --header-height: 104px;
+    }
+    body {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --margin: 12px;
+        --padding: 12px;
+        --header-height: 80px;
+    }
+
+    body {
+        font-size: 16px;
+    }
+}
