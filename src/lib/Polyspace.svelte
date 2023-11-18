@@ -37,7 +37,7 @@
 
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color(background);
-			scene.fog = new THREE.Fog(foreground, 1, 1000);
+			//			scene.fog = new THREE.Fog(foreground, 1, 1000);
 
 			camera = new THREE.PerspectiveCamera(
 				150,
@@ -48,6 +48,8 @@
 			camera.position.z = zoom;
 
 			renderer = new THREE.WebGLRenderer({ antialias: true });
+			const maxPixelRatio = Math.min(window.devicePixelRatio, 2); // Limiting to 2 for performance
+			renderer.setPixelRatio(maxPixelRatio);
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			container.appendChild(renderer.domElement);
 
@@ -109,7 +111,15 @@
 				renderer.setSize(window.innerWidth, window.innerHeight);
 			};
 
-			handleMouseMove = (event: MouseEvent) => {
+			handleMouseMove = (event: MouseEvent | TouchEvent) => {
+				let clientX, clientY;
+				if (event instanceof TouchEvent) {
+					clientX = event.touches[0].clientX;
+					clientY = event.touches[0].clientY;
+				} else {
+					clientX = event.clientX;
+					clientY = event.clientY;
+				}
 				targetMouseX = event.clientX - window.innerWidth / 2;
 				targetMouseY = event.clientY - window.innerHeight / 2;
 				camera.position.z = zoom - Math.abs(window.innerWidth / 2 - event.clientX) * 0.1;
@@ -134,7 +144,7 @@
 		const { background, foreground } = polyspaceColors[currentThemeKey];
 		if (scene && material && lineMaterial) {
 			scene.background = new THREE.Color(background);
-			scene.fog = new THREE.Fog(foreground, 1, 1000);
+			//			scene.fog = new THREE.Fog(foreground, 1, 1000);
 			material.color.set(background);
 			lineMaterial.color.set(foreground);
 		}
