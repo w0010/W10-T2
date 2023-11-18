@@ -23,6 +23,7 @@
 		targetScroll = 0;
 
 	let handleMouseMove: (event: MouseEvent) => void;
+	let handleTouchMove: (event: TouchEvent) => void;
 	let handleResize: (event: UIEvent) => void;
 
 	const ease = (target: number, current: number) => {
@@ -89,7 +90,7 @@
 				);
 				const scrollQuaternion = new THREE.Quaternion().setFromAxisAngle(
 					new THREE.Vector3(1, 0, 0),
-					scroll * 0.001
+					scroll * 0.0015
 				);
 				meshRotator.quaternion.multiplyQuaternions(mouseQuaternion, scrollQuaternion);
 				mesh.rotation.x += 0.0003;
@@ -111,32 +112,32 @@
 				renderer.setSize(window.innerWidth, window.innerHeight);
 			};
 
-			handleMouseMove = (event: MouseEvent | TouchEvent) => {
-				let clientX, clientY;
-				if (event instanceof TouchEvent) {
-					clientX = event.touches[0].clientX;
-					clientY = event.touches[0].clientY;
-				} else {
-					clientX = event.clientX;
-					clientY = event.clientY;
-				}
+			handleMouseMove = (event: MouseEvent) => {
 				targetMouseX = event.clientX - window.innerWidth / 2;
 				targetMouseY = event.clientY - window.innerHeight / 2;
-				camera.position.z = zoom - Math.abs(window.innerWidth / 2 - event.clientX) * 0.1;
+			};
+
+			handleTouchMove = (event: TouchEvent) => {
+				if (event.touches.length > 0) {
+					targetMouseX = event.touches[0].clientX - window.innerWidth / 2;
+					targetMouseY = event.touches[0].clientY - window.innerHeight / 2;
+				}
 			};
 
 			window.onscroll = () => (targetScroll = window.scrollY);
 			window.addEventListener('resize', handleResize);
 			document.addEventListener('mousemove', handleMouseMove);
+			document.addEventListener('touchmove', handleTouchMove);
 		}
 	});
-
+	
 	//Cleanup
 	onDestroy(() => {
 		if (browser) {
 			window.onscroll = null;
 			window.removeEventListener('resize', () => {});
 			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('touchmove', handleTouchMove);
 		}
 	});
 
