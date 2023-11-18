@@ -2,6 +2,10 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
+	import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+	import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+	import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+	import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 	import { theme, polyspaceColors } from '$lib/theme';
 	import { browser } from '$app/environment'; // Import the browser utility
 
@@ -11,7 +15,7 @@
 	let renderer: THREE.WebGLRenderer;
 	let geometry: THREE.TetrahedronGeometry;
 	let material: THREE.MeshPhongMaterial;
-	let lineMaterial: THREE.LineBasicMaterial;
+	let wireMaterial: THREE.LineBasicMaterial;
 	let meshRotator: THREE.Group;
 	const zoom = 350;
 
@@ -38,7 +42,7 @@
 
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color(background);
-			//			scene.fog = new THREE.Fog(foreground, 1, 1000);
+			scene.fog = new THREE.FogExp2(foreground, 9999);
 
 			camera = new THREE.PerspectiveCamera(
 				150,
@@ -48,11 +52,24 @@
 			);
 			camera.position.z = zoom;
 
-			renderer = new THREE.WebGLRenderer({ antialias: true });
-			const maxPixelRatio = Math.min(window.devicePixelRatio, 2); // Limiting to 2 for performance
-			renderer.setPixelRatio(maxPixelRatio);
+			renderer = new THREE.WebGLRenderer({ antialias: false });
+			renderer.setPixelRatio(window.devicePixelRatio);
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			container.appendChild(renderer.domElement);
+
+			// Set up post-processing chain
+			const composer = new EffectComposer(renderer);
+			const renderPass = new RenderPass(scene, camera);
+			composer.addPass(renderPass);
+
+			// FXAA pass
+			const fxaaPass = new ShaderPass(FXAAShader);
+			const pixelRatio = renderer.getPixelRatio();
+			fxaaPass.material.uniforms['resolution'].value.set(
+				1 / (window.innerWidth * pixelRatio),
+				1 / (window.innerHeight * pixelRatio)
+			);
+			composer.addPass(fxaaPass);
 
 			geometry = new THREE.TetrahedronGeometry(1000);
 			material = new THREE.MeshPhongMaterial({
@@ -61,18 +78,18 @@
 				opacity: 0.125,
 				shininess: 20,
 				side: THREE.BackSide
-				//  wireframe: true
-			});
-			lineMaterial = new THREE.LineBasicMaterial({
-				transparent: true,
-				opacity: 1
 			});
 			const mesh = new THREE.Mesh(geometry, material);
 
-			mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geometry), lineMaterial));
+			const wireGeometry = new THREE.TetrahedronGeometry(900);
+			wireMaterial = new THREE.LineBasicMaterial({
+				color: foreground
+			});
+			const wire = new THREE.LineSegments(wireGeometry, wireMaterial);
 
 			meshRotator = new THREE.Group();
 			meshRotator.add(mesh);
+			meshRotator.add(wire);
 			scene.add(meshRotator);
 
 			updateScene($theme as keyof typeof polyspaceColors);
@@ -101,7 +118,7 @@
 			const animate = () => {
 				requestAnimationFrame(animate);
 				update();
-				renderer.render(scene, camera);
+				composer.render();
 			};
 
 			animate();
@@ -110,6 +127,14 @@
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 				renderer.setSize(window.innerWidth, window.innerHeight);
+
+				// Update composer and FXAA pass on resize
+				composer.setSize(window.innerWidth, window.innerHeight);
+				const pixelRatio = renderer.getPixelRatio();
+				fxaaPass.material.uniforms['resolution'].value.set(
+					1 / (window.innerWidth * pixelRatio),
+					1 / (window.innerHeight * pixelRatio)
+				);
 			};
 
 			handleMouseMove = (event: MouseEvent) => {
@@ -130,7 +155,7 @@
 			document.addEventListener('touchmove', handleTouchMove);
 		}
 	});
-	
+
 	//Cleanup
 	onDestroy(() => {
 		if (browser) {
@@ -143,11 +168,11 @@
 
 	function updateScene(currentThemeKey: keyof typeof polyspaceColors) {
 		const { background, foreground } = polyspaceColors[currentThemeKey];
-		if (scene && material && lineMaterial) {
+		if (scene && material && wireMaterial) {
 			scene.background = new THREE.Color(background);
-			//			scene.fog = new THREE.Fog(foreground, 1, 1000);
+			scene.fog = new THREE.FogExp2(foreground, .17);
 			material.color.set(background);
-			lineMaterial.color.set(foreground);
+			wireMaterial.color.set(foreground);
 		}
 	}
 
