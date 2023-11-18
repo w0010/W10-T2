@@ -6,18 +6,6 @@
 </script>
 
 <main>
-	<Article className="flip">
-		<h3 slot="head">Hello!</h3>
-		<p slot="body">paragraoh.</p>
-		<Button slot="action">button</Button>
-
-		<video slot="media" use:pauseOthers controls loop>
-			<source src="/hero-vertical.mp4" type="video/mp4" />
-			<track kind="captions" src="/music-only.vtt" label="English" srclang="en" />
-		</video>
-	</Article>
-
-
 	<section>
 		<article>
 			<div>
@@ -46,37 +34,33 @@
 			I use tailored measurements, live video design & recording, and optional collaboration to
 			develop a transformative tattoo that speaks to you.
 		</p>
-		<a href="/workflow" slot="action">See workflow &gt;&gt;</a>
+		<a href="/workflow" slot="action">See workflow 🡲</a>
 		<video use:pauseOthers controls slot="media">
 			<source src="/process-intro.mp4" type="video/mp4" />
 			<track kind="captions" src="/music-only.vtt" label="English" srclang="en" />
 		</video>
 	</Article>
 
-
-	<section>
-		<article class="flip-on-mobile">
-			<div class="article-content">
-				<h2>Process</h2>
-				<p>
-					I use tailored measurements, live video design & recording, and optional collaboration to
-					develop a transformative tattoo that speaks to you.
-				</p>
-				<span>
-					<a href="/workflow">See workflow &gt;&gt;</a>
-				</span>
-			</div>
-			<div class="article-image">
-				<video use:pauseOthers controls>
-					<source src="/process-intro.mp4" type="video/mp4" />
-					<track kind="captions" src="/music-only.vtt" label="English" srclang="en" />
-				</video>
-			</div>
-		</article>
-	</section>
-
 	<section>
 		<h2>Featured work</h2>
 		<FeaturedWork />
+		<a class="arrow-link" href="/portfolio">Full portfolio 🡲</a>
 	</section>
 </main>
+
+<style>
+	.arrow-link {
+		color: var(--neon-color);
+		font-size: 24px;
+		font-variation-settings: 'wght' 300, 'wdth' 180, 'slnt' 0;
+		letter-spacing: 0.02rem;
+		padding: var(--padding);
+		text-align: right;
+		transition: font-variation-settings 0.25s ease-in; /* ease-in for hover-out */
+	}
+	.arrow-link:hover {
+		font-variation-settings: 'wght' 700, 'wdth' 200, 'slnt' 0;
+		transition: font-variation-settings 0.25s ease-out; /* ease-out for hover-in */
+
+	}
+</style>

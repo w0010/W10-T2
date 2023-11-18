@@ -1,3 +1,4 @@
+<!-- Article.svelte -->
 <script lang="ts">
 	export let className: string = '';
 </script>
@@ -22,35 +23,48 @@
 		padding-bottom: var(--header-height);
 	}
 
-    article > :is(.content, .media) {
-        flex: 1 1;
-    }
- /* this seems it can't reach h2 to adjust it's padding; out of scope */
-	article :is(h2, h3, p, figure, strong) {
+	article > :is(.content, .media) {
+		flex: 1 1;
+	}
+
+	:global(.content :is(h2, h3, p, figure, strong)) {
 		padding-left: var(--padding);
 		padding-right: var(--padding);
 	}
 
-    .content .action-container {
+	.action-container {
 		display: flex;
-        align-items: center;
-		justify-content: center;
-		flex-grow: 1;
+		align-items: center;
 		padding: var(--padding);
-		width: 100%;
 	}
-	
-    .media {
+
+	:global(.action-container a) {
+		color: var(--neon-color);
+		font-size: 24px;
+		font-variation-settings: 'wght' 100, 'wdth' 100, 'slnt' 0;
+		letter-spacing: 0.02rem;
+		transition: font-variation-settings 0.35s ease-in; /* ease-in for hover-out */
+	}
+	:global(.action-container a:hover) {
+		font-variation-settings: 'wght' 700, 'wdth' 100, 'slnt' -10;
+		letter-spacing: 0.02rem;
+		transition: font-variation-settings 0.25s ease-out; /* ease-out for hover-in */
+	}
+
+	.media {
+		align-items: center;
 		justify-content: center;
 		display: flex;
-    }
+	}
+
+	:global(.media :is(img, video)) {
+	}
 
 	@media (max-width: 768px) {
 		article {
 			flex-direction: column;
 		}
-
-		.flip {
+		article.flip {
 			flex-direction: column-reverse;
 		}
 	}
