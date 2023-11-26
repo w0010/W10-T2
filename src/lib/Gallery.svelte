@@ -11,6 +11,7 @@
 			if (res.ok) {
 				const data = await res.json();
 				images = data.images; // Make sure this matches the structure of your JSON response
+				console.log('We got the images')
 			} else {
 				console.error('Fetch error:', res.statusText);
 			}
@@ -30,16 +31,19 @@
 	function closeModal() {
 		selectedImage = null;
 	}
+console.log('images:', images)
+
 </script>
 
 {#if selectedImage}
 	<ImageModal src={selectedImage} alt="Expanded tattoo photograph" on:close={closeModal} />
 {/if}
 
+
 <div class="gallery">
 	{#each images as imageSrc (imageSrc)}
 		<button on:click={() => openModal(imageSrc)}>
-			<img src={imageSrc} alt="Tattoo photograph thumbnail" />
+			<img src={imageSrc} alt="Tattoo photograph thumbnail" loading="lazy"/>
 		</button>
 	{/each}
 </div>

@@ -38,19 +38,6 @@
 		padding: var(--padding);
 	}
 
-	:global(.action-container a) {
-		color: var(--neon-color);
-		font-size: 24px;
-		font-variation-settings: 'wght' 100, 'wdth' 100, 'slnt' 0;
-		letter-spacing: 0.02rem;
-		transition: font-variation-settings 0.35s ease-in; /* ease-in for hover-out */
-	}
-	:global(.action-container a:hover) {
-		font-variation-settings: 'wght' 700, 'wdth' 100, 'slnt' -10;
-		letter-spacing: 0.02rem;
-		transition: font-variation-settings 0.25s ease-out; /* ease-out for hover-in */
-	}
-
 	.media {
 		align-items: center;
 		justify-content: center;
@@ -58,6 +45,7 @@
 	}
 
 	:global(.media :is(img, video)) {
+		width: 100%;
 	}
 
 	@media (max-width: 768px) {

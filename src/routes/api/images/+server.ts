@@ -10,6 +10,7 @@ export const GET: RequestHandler = async () => {
         const imageFiles = files.filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file));
         const images = imageFiles.map(file => `/images/${file}`);
 
+
         // Convert the array of images to JSON and return a Response object
         return new Response(JSON.stringify({ images }), {
             status: 200,

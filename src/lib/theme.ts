@@ -13,12 +13,12 @@ function getSystemThemePreference() {
 //colors I would like to use for polyspace, depending on current theme
 export const polyspaceColors = {
     light: {
-        background: 'hsla(0, 0%, 92%, 1)',
-        foreground: 'hsla(216, 7%, 11%, 1)',
+        background: '#ebebeb',
+        foreground: '#1a1c1e',
     },
     dark: {
-        background: 'hsla(216, 7%, 11%, 1)',
-        foreground: 'hsla(0, 0%, 92%, 1)',
+        background: '#1a1c1e',
+        foreground: '#ebebeb',
     },
 };
 

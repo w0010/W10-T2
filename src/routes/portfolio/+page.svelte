@@ -1,4 +1,4 @@
-<!-- Portfolio -->
+<!-- routes/portfolio/+page.svelte -->
 <script>
 	import Gallery from '$lib/Gallery.svelte';
 </script>
@@ -10,7 +10,3 @@
 		<Gallery />
 	</section>
 </main>
-
-<style>
-	
-</style>

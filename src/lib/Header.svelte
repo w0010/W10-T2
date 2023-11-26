@@ -1,64 +1,88 @@
 <!-- Header.svelte -->
 <script lang="ts">
-	import { theme, themeAction } from '$lib/theme';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { theme } from '$lib/theme';
 
 	let menuOpen = false;
-	let scrolled = false;
 	let burgerMenu: HTMLElement;
 	let currentTheme: string;
-
-	const unsubscribe = theme.subscribe((value) => {
-		currentTheme = value;
-	});
-
-	onDestroy(() => {
-		unsubscribe();
-	});
+	let lastScrollTop = 0;
+	let hideHeader = false;
+	let scrolled = false;
+	let unsubscribe: () => void;
+	let resizeObserver: ResizeObserver;
 
 	function toggleTheme() {
-		theme.update((current) => (current === 'light' ? 'dark' : 'light'));
+		theme.update((current) => (current === 'light' ? 'dark' : 'light'))
 	}
-
 	function toggleMenu() {
 		menuOpen = !menuOpen;
 	}
-
 	function closeMenu() {
 		menuOpen = false;
 	}
-
-	// Timeout ensures that the link is followed before the menu is closed
 	function handleClickOutside(event: MouseEvent) {
 		if (burgerMenu && !burgerMenu.contains(event.target as Node)) {
-			setTimeout(closeMenu, 10);
+			setTimeout(closeMenu, 10); // timeout ensures that link is followed before menu is closed
 		}
 	}
-
 	function handleScroll() {
-		scrolled = window.scrollY > 0;
+		const currentScrollTop = window.scrollY;
+		const documentHeight = document.documentElement.scrollHeight;
+		const windowHeight = window.innerHeight;
+		const tolerance = 1; // sometimes there's a <1px descrepency between the doc+win height and scroll
+		const atBottom = (currentScrollTop + windowHeight + tolerance) >= documentHeight;
+
+		scrolled = currentScrollTop > 0;
+		if (!menuOpen) {
+			hideHeader = currentScrollTop > lastScrollTop && !atBottom;
+		}
+		lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
 	}
 
 	onMount(() => {
 		if (browser) {
+			unsubscribe = theme.subscribe((value) => {
+				currentTheme = value;
+			});
+
 			window.addEventListener('scroll', handleScroll);
 			document.addEventListener('mousedown', handleClickOutside);
+
+			// checks to make sure bottom of page is up to date in locations with dynamic content
+			resizeObserver = new ResizeObserver((entries) => {
+				for (let entry of entries) {
+					handleScroll();
+				}
+			});
+
+			resizeObserver.observe(document.body); // begin oberservation
+			handleScroll(); // init check for scroll position
+		}
+	});
+
+	onDestroy(() => {
+		if (typeof unsubscribe === 'function') {
+			unsubscribe();
 		}
 
-		// Initial check for scroll position
-		handleScroll();
+		if (browser) {
+			window.removeEventListener('scroll', handleScroll);
+			document.removeEventListener('mousedown', handleClickOutside);
 
-		return () => {
-			if (browser) {
-				window.removeEventListener('scroll', handleScroll);
-				document.removeEventListener('mousedown', handleClickOutside);
+			if (resizeObserver) {
+				resizeObserver.disconnect();
 			}
-		};
+		}
 	});
 </script>
 
-<header class:scrolled>
+
+
+
+
+<header class:scrolled class:hide={hideHeader} class:menu-open={menuOpen}>
 	<div class="title">
 		<a href="/"><h1>Wooten <span>Tattoo</span></h1></a>
 	</div>
@@ -82,6 +106,12 @@
 		</ul>
 	</nav>
 </header>
+
+
+
+
+
+
 
 <style>
 	.burger {
@@ -108,9 +138,15 @@
 		height: var(--header-height);
 		background: none;
 		z-index: 99;
+		transform: translateY(0);
+		transition: transform 0.2s ease-in-out;
 	}
 
-	header.scrolled::before {
+	header.hide:not(.menu-open) {
+		transform: translateY(-100%);
+	}
+
+	header::before {
 		--bevel: 1.5rem;
 		background: var(--bg-color2);
 		clip-path: polygon(
@@ -118,8 +154,8 @@
 			100% 0%,
 			100% 100%,
 			70% 100%,
-			calc(70% - var(--bevel)) calc(100% - var(--bevel)),
-			calc(30% + var(--bevel)) calc(100% - var(--bevel)),
+			calc(68% - var(--bevel)) calc(100% - var(--bevel)),
+			calc(32% + var(--bevel)) calc(100% - var(--bevel)),
 			30% 100%,
 			0% 100%
 		);
@@ -130,8 +166,14 @@
 		width: 100%;
 		height: 100%;
 		z-index: -1;
+		transition: opacity 0.2s, visibility 0.2s;
+		opacity: 0;
+		visibility: hidden;
+	}
 
-		transition: 0.35s;
+	header.scrolled:not(.hide)::before {
+		opacity: 1;
+		visibility: visible;
 	}
 
 	.desktop {
@@ -141,7 +183,7 @@
 	}
 
 	.desktop a {
-		font-variation-settings: "wght" 500, "wdth" 100, "slnt" 0;
+		font-variation-settings: 'wght' 500, 'wdth' 100, 'slnt' 0;
 		letter-spacing: 0.05em;
 	}
 
@@ -155,13 +197,13 @@
 		opacity: 0;
 		padding-top: 128px;
 		padding-right: calc(var(--margin) + var(--padding));
-		position: fixed;
+		position: absolute;
 		top: 0;
 		left: 0;
 		right: 0;
-		bottom: 0;
+		height: 100vh;
 		visibility: hidden;
-		transition: opacity ease 0.5s, visibility ease 0.5s;
+		transition: opacity ease 0.3s, visibility ease 0.3s;
 		z-index: 1;
 	}
 
@@ -212,7 +254,7 @@
 
 	@media (max-width: 1440px) {
 		.desktop a {
-			font-variation-settings: "wght" 500, "wdth" 80, "slnt" 0;
+			font-variation-settings: 'wght' 500, 'wdth' 80, 'slnt' 0;
 		}
 	}
 	@media (max-width: 768px) {

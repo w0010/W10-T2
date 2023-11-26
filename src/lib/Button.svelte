@@ -37,10 +37,6 @@
 		position: relative;
 	}
 	
-	button:hover {
-		padding: 16px;
-	}
-	
 	button span {
 		backdrop-filter: blur(8px);
 		border: 2px solid var(--neon-color);
@@ -52,13 +48,12 @@
 		font-size: 1.35rem;
 		font-variation-settings: 'wght' 600, 'wdth' 100, 'slnt' 0;
 		letter-spacing: 0.03em;
-		padding: 0.75em 0.85em 0.6em 0.85em;
+		padding: 0.75em 0.85em 0.65em 0.85em;
 		transition: ease 250ms;
 	}
 
 	button span:hover {
 		background: var(--faded-color);
-		font-variation-settings: 'wght' 600, 'wdth' 100, 'slnt' 0;
 	}
 
 	svg.corner {

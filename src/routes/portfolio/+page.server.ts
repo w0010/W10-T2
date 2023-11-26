@@ -1,3 +1,4 @@
+// routes/portfolio/+page.server.ts
 import type { PageServerLoad } from './$types';
 
 export const load = (async () => {

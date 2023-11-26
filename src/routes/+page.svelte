@@ -7,25 +7,13 @@
 
 <main>
 	<section>
-		<article>
-			<div>
-				<video use:pauseOthers controls loop>
-					<source src="/hero-vertical.mp4" type="video/mp4" />
-					<track kind="captions" src="/music-only.vtt" label="English" srclang="en" />
-				</video>
-			</div>
-			<div>
-				<div>
-					<strong>Procedural</strong>
-					<strong>Cyberpunk</strong>
-					<strong>Blackout</strong>
-				</div>
-				<span>
-					<Button tfPopup="Ov6ioB7j">Make contact</Button>
-					<script src="//embed.typeform.com/next/embed.js"></script>
-				</span>
-			</div>
-		</article>
+		<h2>Styles</h2>
+		<strong>Procedural</strong>
+		<strong>Cyberpunk</strong>
+		<strong>Blackout</strong>
+		<Button tfPopup="Ov6ioB7j">Contact</Button>
+		<script src="//embed.typeform.com/next/embed. js"></script>
+
 	</section>
 
 	<Article className="flip">
@@ -34,7 +22,7 @@
 			I use tailored measurements, live video design & recording, and optional collaboration to
 			develop a transformative tattoo that speaks to you.
 		</p>
-		<a href="/workflow" slot="action">See workflow 🡲</a>
+		<a class="arrow-link" href="/workflow" slot="action">See workflow 🡲</a>
 		<video use:pauseOthers controls slot="media">
 			<source src="/process-intro.mp4" type="video/mp4" />
 			<track kind="captions" src="/music-only.vtt" label="English" srclang="en" />
@@ -52,15 +40,15 @@
 	.arrow-link {
 		color: var(--neon-color);
 		font-size: 24px;
-		font-variation-settings: 'wght' 300, 'wdth' 180, 'slnt' 0;
+		font-variation-settings: 'wght' 300, 'wdth' 150, 'slnt' 0;
 		letter-spacing: 0.02rem;
-		padding: var(--padding);
+		padding-top: var(--padding);
 		text-align: right;
-		transition: font-variation-settings 0.25s ease-in; /* ease-in for hover-out */
+		transition: font-variation-settings 100ms ease-in; /* ease-in for hover-out */
 	}
 	.arrow-link:hover {
-		font-variation-settings: 'wght' 700, 'wdth' 200, 'slnt' 0;
-		transition: font-variation-settings 0.25s ease-out; /* ease-out for hover-in */
+		font-variation-settings: 'wght' 500, 'wdth' 150, 'slnt' -10;
+		transition: font-variation-settings 100ms ease-out; /* ease-out for hover-in */
 
 	}
 </style>
