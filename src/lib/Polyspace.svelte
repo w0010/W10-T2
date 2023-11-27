@@ -174,45 +174,54 @@
 			}
 
 			let pendulums: Pendulum[] = [
-				{ frequency: 4, amplitude: 11, phase: 0, damping: 0.003 },
-				{ frequency: 4, amplitude: 256, phase: Math.PI / 5, damping: 0.01 },
-				{ frequency: 4, amplitude: 128, phase: Math.PI / 2, damping: 0.001 },
-				{ frequency: 4, amplitude: 256, phase: Math.PI / 2, damping: 0.00001 }
+				{ frequency: 2, amplitude: 2.2, phase: 0, damping: 0.005 },
+				{ frequency: 1, amplitude: 250, phase: Math.PI / 3, damping: 0.005 },
+				{ frequency: 1, amplitude: 200, phase: Math.PI / 3, damping: 0.005 },
+				{ frequency: 1, amplitude: 250, phase: Math.PI / 3, damping: 0.005 }
 			];
 
 			function createHarmonographGeo(
 				duration: number,
 				pendulums: Pendulum[],
-				steps: number = 10000
+				steps: number = 50000
 			): THREE.BufferGeometry {
 				const points: THREE.Vector3[] = [];
 				for (let i = 0; i < steps; i++) {
-					let x: number = 0;
-					let y: number = 0;
-					let z: number = 0;
 					const t = (duration / steps) * i;
-					const rotAngle =
+					let x = 0,
+						y = 0,
+						z = 0;
+
+					// Calculate the rotational angle from the rotary pendulum
+					const theta =
 						pendulums[0].amplitude *
 						Math.exp(-pendulums[0].damping * t) *
-						Math.cos(pendulums[0].frequency * t + pendulums[0].phase);
+						Math.sin(pendulums[0].frequency * t + pendulums[0].phase);
 
+					// Calculate the X and Y positions from the lateral pendulums
 					x +=
 						pendulums[1].amplitude *
 						Math.exp(-pendulums[1].damping * t) *
-						Math.cos(pendulums[1].frequency * t + pendulums[1].phase + rotAngle);
-
+						Math.cos(pendulums[1].frequency * t + pendulums[1].phase);
 					y +=
 						pendulums[2].amplitude *
 						Math.exp(-pendulums[2].damping * t) *
-						Math.cos(pendulums[2].frequency * t + pendulums[2].phase + rotAngle);
-
+						Math.sin(pendulums[2].frequency * t + pendulums[2].phase);
 					z +=
 						pendulums[3].amplitude *
 						Math.exp(-pendulums[3].damping * t) *
-						Math.cos(pendulums[3].frequency * t + pendulums[3].phase + rotAngle);
+						Math.sin(pendulums[3].frequency * t + pendulums[3].phase);
 
-					points.push(new THREE.Vector3(x, y, 0)); // temporarily making z = 0 to focus on x&y
+					// Apply the rotation to x and y
+					const rotatedX = x * Math.cos(theta) - y * Math.sin(theta);
+					const rotatedY = x * Math.sin(theta) + y * Math.cos(theta);
+					const rotatedZ = x * Math.cos(theta) - y * Math.cos(theta);
+
+					// Add the computed point to the points array
+					points.push(new THREE.Vector3(rotatedX, rotatedY, rotatedZ)); // Z is zero unless you want to simulate 3D tilting
 				}
+
+				// Return the BufferGeometry made from the points
 				return new THREE.BufferGeometry().setFromPoints(points);
 			}
 
@@ -259,24 +268,6 @@
 
 			let isHovering = false; // track hover state
 			let isAnimating = false; // track if animation is currently playing
-			let forwardTween = new TWEEN.Tween(harmonoMesh.rotation)
-				.to({ x: Math.PI / -2, z: Math.PI / 2 }, 500)
-				.easing(TWEEN.Easing.Exponential.Out)
-				.onStart(() => {
-					isAnimating = true;
-				})
-				.onComplete(() => {
-					isAnimating = false;
-				});
-			let reverseTween = new TWEEN.Tween(harmonoMesh.rotation)
-				.to({ x: 0, y: 0, z: 0 }, 500) // Resetting y and z rotations
-				.easing(TWEEN.Easing.Exponential.Out)
-				.onStart(() => {
-					isAnimating = false;
-				})
-				.onComplete(() => {
-					isAnimating = false;
-				});
 
 			handleMouseMove = (event: MouseEvent) => {
 				const raycaster = new THREE.Raycaster();
@@ -291,6 +282,25 @@
 				const intersects = raycaster.intersectObjects([coreMesh]);
 
 				let currentlyHovering = intersects.length > 0;
+
+				let forwardTween = new TWEEN.Tween(harmonoMesh.rotation)
+					.to({ x: Math.PI / -2, z: Math.PI / 2 }, 500)
+					.easing(TWEEN.Easing.Exponential.Out)
+					.onStart(() => {
+						isAnimating = true;
+					})
+					.onComplete(() => {
+						isAnimating = false;
+					});
+				let reverseTween = new TWEEN.Tween(harmonoMesh.rotation)
+					.to({ x: 0, y: 0, z: 0 }, 500) // Resetting y and z rotations
+					.easing(TWEEN.Easing.Exponential.Out)
+					.onStart(() => {
+						isAnimating = false;
+					})
+					.onComplete(() => {
+						isAnimating = false;
+					});
 
 				if (currentlyHovering !== isHovering) {
 					isHovering = currentlyHovering;
@@ -309,7 +319,7 @@
 					} else {
 						forwardTween.stop(); // Stop the forward tween
 						reverseTween = new TWEEN.Tween(harmonoMesh.rotation) // Reinitialize the tween from current position
-							.to({ x: 0, y: 0, z: 0 }, 1000) // Resetting y and z rotations
+							.to({ x: 0, y: 0, z: 0 }, 500) // Resetting y and z rotations
 							.easing(TWEEN.Easing.Exponential.Out)
 							.onStart(() => {
 								isAnimating = true;

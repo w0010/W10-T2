@@ -1,4 +1,4 @@
-<!-- Gallery.svelte -->
+<!-- $lib/Gallery.svelte -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import ImageModal from '$lib/ImageModal.svelte';
