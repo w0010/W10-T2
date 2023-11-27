@@ -58,9 +58,11 @@ body {
 body .theme-provider {
     color: var(--text-color);
     transition: 0.4s;
+    position: relative;
 }
 
 canvas {
+    background: var(--bg-color);
     position: fixed;
     top: 0;
     left: 0;

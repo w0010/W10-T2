@@ -1,6 +1,8 @@
 <!-- Polyspace.svelte -->
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import type { Unsubscriber } from 'svelte/motion';
+	import { browser } from '$app/environment'; // Import the browser utility
 
 	import * as THREE from 'three';
 	import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
@@ -9,12 +11,11 @@
 	import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 	import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 	import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
+
 	import TWEEN from '@tweenjs/tween.js';
 
 	import { theme, polyspaceColors } from '$lib/theme';
 	import { scrollStore } from '$lib/scrollStore';
-	import { browser } from '$app/environment'; // Import the browser utility
-	import type { Unsubscriber } from 'svelte/motion';
 
 	let scene: THREE.Scene;
 	let camera: THREE.PerspectiveCamera;
@@ -69,7 +70,7 @@
 			const { background, foreground } = polyspaceColors[currentThemeKey];
 
 			scene = new THREE.Scene();
-			scene.fog = new THREE.Fog(0xebebeb, 100, 2048);
+			scene.fog = new THREE.Fog(background, 100, 2048);
 
 			camera = new THREE.PerspectiveCamera(137, aspect, 1, 2000);
 			camera.position.set(0, 0, cameraDistance);
@@ -138,6 +139,8 @@
 			polyGeo = new THREE.TetrahedronGeometry(1024);
 			polyMat = new THREE.MeshPhysicalMaterial({
 				color: background,
+				transparent: true,
+				opacity: 0,
 				metalness: 0.5, // Adjust metalness and roughness as needed
 				roughness: 0.5,
 				side: THREE.BackSide
@@ -149,12 +152,20 @@
 			wireMat = new THREE.LineBasicMaterial({
 				color: foreground,
 				depthTest: false,
-				fog: false
+				fog: true
 			});
 			wireMesh = new THREE.LineSegments(edgesGeometry, wireMat);
 			wireMesh.renderOrder = 1;
 
-			coreGeo = new THREE.DodecahedronGeometry(window.innerHeight * 0.05, 3);
+			function getVmin() {
+				const vw = window.innerWidth;
+				const vh = window.innerHeight;
+				return Math.min(vw, vh);
+			}
+			const vmin = getVmin();
+
+			let coreSize = vmin * 0.1;
+			coreGeo = new THREE.DodecahedronGeometry(coreSize, 3);
 			coreMat = new THREE.MeshPhysicalMaterial({
 				color: foreground,
 				transparent: true,
@@ -174,10 +185,10 @@
 			}
 
 			let pendulums: Pendulum[] = [
-				{ frequency: 2, amplitude: 2.2, phase: 0, damping: 0.005 },
-				{ frequency: 1, amplitude: 250, phase: Math.PI / 3, damping: 0.005 },
-				{ frequency: 1, amplitude: 200, phase: Math.PI / 3, damping: 0.005 },
-				{ frequency: 1, amplitude: 250, phase: Math.PI / 3, damping: 0.005 }
+				{ frequency: 2, amplitude: Math.PI / 2.3, phase: 0, damping: 0.005 }, // Rotary pendulum
+				{ frequency: 2.006, amplitude: coreSize * 2.5, phase: Math.PI / 2, damping: 0.009 },
+				{ frequency: 3.001, amplitude: coreSize * 2.5, phase: Math.PI / 2, damping: 0.002 },
+				{ frequency: 1, amplitude: 256, phase: Math.PI / -4, damping: 0.007 }
 			];
 
 			function createHarmonographGeo(
@@ -196,7 +207,7 @@
 					const theta =
 						pendulums[0].amplitude *
 						Math.exp(-pendulums[0].damping * t) *
-						Math.sin(pendulums[0].frequency * t + pendulums[0].phase);
+						Math.cos(pendulums[0].frequency * t + pendulums[0].phase);
 
 					// Calculate the X and Y positions from the lateral pendulums
 					x +=
@@ -215,7 +226,7 @@
 					// Apply the rotation to x and y
 					const rotatedX = x * Math.cos(theta) - y * Math.sin(theta);
 					const rotatedY = x * Math.sin(theta) + y * Math.cos(theta);
-					const rotatedZ = x * Math.cos(theta) - y * Math.cos(theta);
+					const rotatedZ = x * Math.sin(theta) - y * Math.sin(theta); // made-up bullshit; maybe correct later (looks good now though)
 
 					// Add the computed point to the points array
 					points.push(new THREE.Vector3(rotatedX, rotatedY, rotatedZ)); // Z is zero unless you want to simulate 3D tilting
@@ -225,7 +236,7 @@
 				return new THREE.BufferGeometry().setFromPoints(points);
 			}
 
-			harmonographGeo = createHarmonographGeo(64, pendulums);
+			harmonographGeo = createHarmonographGeo(96, pendulums);
 
 			const positions = harmonographGeo.attributes.position;
 			const points = [];
@@ -234,7 +245,7 @@
 			}
 
 			const curve = new THREE.CatmullRomCurve3(points);
-			const harmonoGeo = new THREE.TubeGeometry(curve, 8192, 2, 32, false);
+			const harmonoGeo = new THREE.TubeGeometry(curve, 8192, 1, 32, false);
 			harmonoMat = new THREE.MeshPhysicalMaterial({
 				color: foreground,
 				transparent: true,
@@ -279,13 +290,10 @@
 
 				raycaster.setFromCamera(mouse, orthoCamera);
 				raycaster.layers.set(1);
-				const intersects = raycaster.intersectObjects([coreMesh]);
-
-				let currentlyHovering = intersects.length > 0;
 
 				let forwardTween = new TWEEN.Tween(harmonoMesh.rotation)
-					.to({ x: Math.PI / -2, z: Math.PI / 2 }, 500)
-					.easing(TWEEN.Easing.Exponential.Out)
+					.to({ x: Math.PI / 4, y: Math.PI / 4, z: Math.PI / 4 }, 667)
+					.easing(TWEEN.Easing.Exponential.InOut)
 					.onStart(() => {
 						isAnimating = true;
 					})
@@ -293,8 +301,8 @@
 						isAnimating = false;
 					});
 				let reverseTween = new TWEEN.Tween(harmonoMesh.rotation)
-					.to({ x: 0, y: 0, z: 0 }, 500) // Resetting y and z rotations
-					.easing(TWEEN.Easing.Exponential.Out)
+					.to({ x: 0, y: 0, z: 0 }, 667) // Resetting y and z rotations
+					.easing(TWEEN.Easing.Exponential.InOut)
 					.onStart(() => {
 						isAnimating = false;
 					})
@@ -302,13 +310,16 @@
 						isAnimating = false;
 					});
 
+				const intersects = raycaster.intersectObjects([coreMesh]);
+				let currentlyHovering = intersects.length > 0;
+
 				if (currentlyHovering !== isHovering) {
 					isHovering = currentlyHovering;
 					if (isHovering) {
 						reverseTween.stop(); // Stop the reverse tween
 						forwardTween = new TWEEN.Tween(harmonoMesh.rotation) // Reinitialize the tween from current position
-							.to({ x: Math.PI / -2, z: Math.PI / 2 }, 500)
-							.easing(TWEEN.Easing.Exponential.Out)
+							.to({ x: Math.PI / 4, y: Math.PI / 4, z: Math.PI / 4 }, 667)
+							.easing(TWEEN.Easing.Exponential.InOut)
 							.onStart(() => {
 								isAnimating = true;
 							})
@@ -319,8 +330,8 @@
 					} else {
 						forwardTween.stop(); // Stop the forward tween
 						reverseTween = new TWEEN.Tween(harmonoMesh.rotation) // Reinitialize the tween from current position
-							.to({ x: 0, y: 0, z: 0 }, 500) // Resetting y and z rotations
-							.easing(TWEEN.Easing.Exponential.Out)
+							.to({ x: 0, y: 0, z: 0 }, 667) // Resetting y and z rotations
+							.easing(TWEEN.Easing.Exponential.InOut)
 							.onStart(() => {
 								isAnimating = true;
 							})
@@ -363,34 +374,73 @@
 				mouseY = ease(targetMouseY, mouseY);
 				scroll = ease(targetScroll, scroll);
 
+				// Calculate the maximum scrollable height of the document
+				const maxScroll = document.body.scrollHeight - window.innerHeight;
+
+				// Invert the scroll value so it's 0 at the bottom and maxScroll at the top
+				const invertedScroll = maxScroll - scroll;
+
+				// Normalize the inverted scroll position to a value between 0 and 1
+				const normalizedScroll = Math.max(0, Math.min(1, invertedScroll / maxScroll));
+
+				// Use the normalized scroll value to determine the rotation
+				const scrollRotation = normalizedScroll * Math.PI * 2; // Full rotation at the top
+
 				const mouseQuaternion = new THREE.Quaternion().multiplyQuaternions(
 					new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 2, 1), mouseX * 0.0003),
 					new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), mouseY * 0.0006)
 				);
-				const scrollQuaternion = new THREE.Quaternion().setFromAxisAngle(
-					new THREE.Vector3(-1, 0, 0),
+				const scrollQuaternionForSpace = new THREE.Quaternion().setFromAxisAngle(
+					new THREE.Vector3(1, 0, 0),
 					scroll * 0.0008
 				);
-				spaceRotator.quaternion.multiplyQuaternions(mouseQuaternion, scrollQuaternion);
-				coreRotator.quaternion.copy(mouseQuaternion);
+				const scrollQuaternionForCore = new THREE.Quaternion().setFromAxisAngle(
+					new THREE.Vector3(1, 1, -1),
+					scrollRotation
+				);
+				spaceRotator.quaternion.multiplyQuaternions(mouseQuaternion, scrollQuaternionForSpace); // default 0 rotation at scrolltop, rotated at bottom
+				coreRotator.quaternion.multiplyQuaternions(mouseQuaternion, scrollQuaternionForCore); // 0 rotation at Bottom, rotated at scrolltop
 			};
+
+			function updateButtonPosition() {
+				const vector = new THREE.Vector3();
+				const canvasBounds = renderer.domElement.getBoundingClientRect();
+
+				// Convert 3D position to screen space
+				coreMesh.updateMatrixWorld();
+				vector.setFromMatrixPosition(coreMesh.matrixWorld);
+				vector.project(orthoCamera);
+
+				vector.x = (vector.x * 0.5 + 0.5) * canvasBounds.width + canvasBounds.left;
+				vector.y = -(vector.y * 0.5 - 0.5) * canvasBounds.height + canvasBounds.top;
+
+				// Update HTML button position
+				const button = document.querySelector('.answer button');
+				if (button instanceof HTMLElement) {
+					const buttonWidth = button.offsetWidth;
+					const buttonHeight = button.offsetHeight;
+					button.style.position = 'absolute';
+					button.style.left = `${vector.x - buttonWidth / 2}px`; // Center horizontally
+					button.style.top = `${vector.y - buttonHeight / 2}px`; // Center vertically
+					button.style.border = '2px solid red';
+				}
+			}
 
 			const animate = () => {
 				requestAnimationFrame(animate);
+				updateButtonPosition();
 				TWEEN.update();
 				update();
 
 				// Render the scene with the perspective camera
 				renderer.autoClear = true; // Ensure the renderer clears the previous frame
 				camera.layers.set(0); // Use the perspective camera for layer 0
-				scene.background = new THREE.Color(background);
 				composer.render(); // Render everything except the core mesh
 
 				// Clear the depth buffer, then render only the core with the orthographic camera
 				renderer.autoClear = false; // Do not clear the color buffer
 				renderer.clearDepth(); // Clear depth to ensure the core mesh is rendered on top
 				orthoCamera.layers.set(1); // Use the orthographic camera for layer 1 (core mesh)
-				scene.background = null;
 				renderer.render(scene, orthoCamera); // Render only the core mesh
 			};
 
@@ -398,7 +448,7 @@
 
 			unsubscribeScroll = scrollStore.subscribe(($scrollstore) => {
 				const { distanceToBottom } = $scrollStore;
-				const fadeDistance = 512; // Distance over which the fade-in effect occurs
+				const fadeDistance = window.innerHeight / 3; // Distance over which the fade-in effect occurs
 
 				// Calculate opacity based on distance to bottom
 				let opacityControl = Math.max(1 - distanceToBottom / fadeDistance, 0);
@@ -432,9 +482,10 @@
 	});
 
 	function updateScene(currentThemeKey: keyof typeof polyspaceColors) {
+		console.log('w10: Updating scene for theme:', currentThemeKey);
 		const { background, foreground } = polyspaceColors[currentThemeKey];
 		if (scene && polyMat && wireMat) {
-			scene.background = new THREE.Color(background);
+			scene.fog = new THREE.Fog(background, 100, 2048);
 			polyMat.color.set(background);
 			wireMat.color.set(foreground);
 			coreMat.color.set(foreground);

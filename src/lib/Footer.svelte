@@ -69,18 +69,6 @@
 		padding: 0;
 	}
 	
-	.answer {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-grow: 1;
-		padding-bottom: 0;
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-	}
 
 	.answer button {
 		background: none;
@@ -92,13 +80,13 @@
 		text-transform: uppercase;
 		text-shadow: 0 0 8px var(--text-color);
 		padding: 0;
-		transition: font-variation-settings 0.4s ease-in-out;
+		transition: font-variation-settings 500ms ease-in-out;
 	}
 	
 	.answer button:hover {
 		cursor: pointer;
 		font-variation-settings: 'wght' 900, 'wdth' 200, 'slnt' -10;
-		transition: font-variation-settings 0.4s ease-in-out;
+		transition: font-variation-settings 500ms ease-in-out;
 	}
 
 	.shokunin {
