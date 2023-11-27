@@ -140,7 +140,7 @@
 			polyMat = new THREE.MeshPhysicalMaterial({
 				color: background,
 				transparent: true,
-				opacity: 0,
+				opacity: 0.5,
 				metalness: 0.5, // Adjust metalness and roughness as needed
 				roughness: 0.5,
 				side: THREE.BackSide
@@ -151,6 +151,8 @@
 			const edgesGeometry = new THREE.EdgesGeometry(wireGeo);
 			wireMat = new THREE.LineBasicMaterial({
 				color: foreground,
+				transparent: true,
+				opacity: 0.5,
 				depthTest: false,
 				fog: true
 			});
@@ -164,7 +166,7 @@
 			}
 			const vmin = getVmin();
 
-			let coreSize = vmin * 0.1;
+			let coreSize = vmin * 0.07;
 			coreGeo = new THREE.DodecahedronGeometry(coreSize, 3);
 			coreMat = new THREE.MeshPhysicalMaterial({
 				color: foreground,
@@ -391,8 +393,8 @@
 					new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), mouseY * 0.0006)
 				);
 				const scrollQuaternionForSpace = new THREE.Quaternion().setFromAxisAngle(
-					new THREE.Vector3(1, 0, 0),
-					scroll * 0.0008
+					new THREE.Vector3(-1, 0, 0),
+					scrollRotation * 0.23
 				);
 				const scrollQuaternionForCore = new THREE.Quaternion().setFromAxisAngle(
 					new THREE.Vector3(1, 1, -1),
