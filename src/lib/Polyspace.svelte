@@ -188,9 +188,9 @@
 
 			let pendulums: Pendulum[] = [
 				{ frequency: 2, amplitude: Math.PI / 2.3, phase: 0, damping: 0.005 }, // Rotary pendulum
-				{ frequency: 2.006, amplitude: coreSize * 2.5, phase: Math.PI / 2, damping: 0.009 },
-				{ frequency: 3.001, amplitude: coreSize * 2.5, phase: Math.PI / 2, damping: 0.002 },
-				{ frequency: 1, amplitude: 256, phase: Math.PI / -4, damping: 0.007 }
+				{ frequency: 1.006, amplitude: coreSize * 2.5, phase: Math.PI / 2, damping: 0.009 }, // x
+				{ frequency: 3.001, amplitude: coreSize * 2.5, phase: Math.PI / 2, damping: 0.002 }, // y
+				{ frequency: 1, amplitude: coreSize * 2.5, phase: Math.PI / 2, damping: 0.007 } // z
 			];
 
 			function createHarmonographGeo(
@@ -225,20 +225,25 @@
 						Math.exp(-pendulums[3].damping * t) *
 						Math.sin(pendulums[3].frequency * t + pendulums[3].phase);
 
-					// Apply the rotation to x and y
-					const rotatedX = x * Math.cos(theta) - y * Math.sin(theta);
-					const rotatedY = x * Math.sin(theta) + y * Math.cos(theta);
-					const rotatedZ = x * Math.sin(theta) - y * Math.sin(theta); // made-up bullshit; maybe correct later (looks good now though)
+					const rotatedXZ = x * Math.cos(theta) - y * Math.sin(theta);
+					const rotatedYZ = x * Math.sin(theta) + y * Math.cos(theta);
+					const rotatedXY = rotatedXZ * Math.cos(theta) + z * Math.sin(theta);
+					const rotatedZY = z * Math.cos(theta) - rotatedXZ * Math.sin(theta);
+					const rotatedYX = rotatedYZ * Math.cos(theta) - rotatedZY * Math.sin(theta);
+					const rotatedZX = rotatedZY * Math.sin(theta) + rotatedYZ * Math.cos(theta);
+					const finalX = rotatedXY;
+					const finalY = rotatedYX;
+					const finalZ = rotatedZX;
 
 					// Add the computed point to the points array
-					points.push(new THREE.Vector3(rotatedX, rotatedY, rotatedZ)); // Z is zero unless you want to simulate 3D tilting
+					points.push(new THREE.Vector3(finalX, finalY, finalZ));
 				}
 
 				// Return the BufferGeometry made from the points
 				return new THREE.BufferGeometry().setFromPoints(points);
 			}
 
-			harmonographGeo = createHarmonographGeo(96, pendulums);
+			harmonographGeo = createHarmonographGeo(64, pendulums);
 
 			const positions = harmonographGeo.attributes.position;
 			const points = [];
