@@ -1,3 +1,4 @@
+<!-- src/routes/+page.svelte (home page) -->
 <script lang="ts">
 	import Button from '$lib/Button.svelte';
 	import FeaturedWork from '$lib/FeaturedWork.svelte';

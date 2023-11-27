@@ -7,7 +7,7 @@
 	<abbr title="Wooten Tattoo">W10-T2 <span>Tech-Noir Biomechanica</span></abbr>
 	<div class="foot">
 		<div class="question"><p>Have a tattoo in mind?</p></div>
-		<div class="answer"><button data-tf-popup="Ov6ioB7j">✉</button></div>
+		<div class="answer"><button data-tf-popup="Ov6ioB7j">Contact</button></div>
 		<script src="//embed.typeform.com/next/embed.js"></script> 
 	</div>
 	<div class="shokunin">職人気質</div>
@@ -28,14 +28,14 @@
 	}
 
 	footer abbr {
-		font-size: 3.5em;
+		font-size: 2.5em;
 		font-variation-settings: 'wght' 900, 'wdth' 200, 'slnt' 0;
 		text-decoration: none;
 	}
 	
 	footer abbr span {
 		display: block;
-		font-size: 1rem;
+		font-size: 0.29em;
 		font-variation-settings: 'wght' 500, 'wdth' 100, 'slnt' 0;
 		letter-spacing: 0.2vw;
 		text-transform: uppercase;
@@ -45,6 +45,7 @@
 		display: flex;
 		flex-direction: column-reverse;
 		flex-grow: 1;
+		position: relative;
 	}
 
 	.question {
@@ -73,14 +74,31 @@
 		align-items: center;
 		justify-content: center;
 		flex-grow: 1;
+		padding-bottom: 0;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
 	}
 
 	.answer button {
 		background: none;
 		border: none;
-		font-size: 20vmin;
-		color: var(--text-color2);
+		font-family: var(--font);
+		font-size: 5vmin;
+		font-variation-settings: 'wght' 700, 'wdth' 100, 'slnt' 0;
+		color: var(--bg-color2);
+		text-transform: uppercase;
+		text-shadow: 0 0 8px var(--text-color);
+		padding: 0;
+		transition: font-variation-settings 0.4s ease-in-out;
+	}
+	
+	.answer button:hover {
 		cursor: pointer;
+		font-variation-settings: 'wght' 900, 'wdth' 200, 'slnt' -10;
+		transition: font-variation-settings 0.4s ease-in-out;
 	}
 
 	.shokunin {

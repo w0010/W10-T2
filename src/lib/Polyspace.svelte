@@ -9,6 +9,7 @@
 	import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 	import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 	import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
+	import TWEEN from '@tweenjs/tween.js';
 
 	import { theme, polyspaceColors } from '$lib/theme';
 	import { scrollStore } from '$lib/scrollStore';
@@ -16,12 +17,15 @@
 	import type { Unsubscriber } from 'svelte/motion';
 
 	let scene: THREE.Scene;
-	const cameraDistance = 350;
 	let camera: THREE.PerspectiveCamera;
 	let orthoCamera: THREE.OrthographicCamera;
+
+	const cameraDistance = 350;
+	const clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 500); // Plane perpendicular to z-axis
+
 	let renderer: THREE.WebGLRenderer;
 	let container: HTMLElement;
-	
+
 	let polyGeo: THREE.TetrahedronGeometry;
 	let polyMat: THREE.MeshPhysicalMaterial;
 	let polyMesh: THREE.Mesh;
@@ -34,7 +38,12 @@
 	let coreMat: THREE.MeshPhysicalMaterial;
 	let coreMesh: THREE.Mesh;
 
-	let meshRotator: THREE.Group;
+	let harmonographGeo: THREE.BufferGeometry;
+	let harmonoMat: THREE.MeshPhysicalMaterial;
+	let harmonoMesh: THREE.Mesh;
+
+	let spaceRotator: THREE.Group;
+	let coreRotator: THREE.Group;
 
 	let mouseX = 0,
 		mouseY = 0,
@@ -77,29 +86,33 @@
 			orthoCamera.lookAt(0, 0, 0);
 			orthoCamera.layers.enable(1);
 
+			// Lights
 			const ambientLight = new THREE.AmbientLight(0xebebeb, 1); // White light, 50% intensity
 			scene.add(ambientLight);
-
 			ambientLight.layers.enable(1);
-			
-			const directionalLight = new THREE.DirectionalLight(0xebebeb, 1);
-			directionalLight.position.set(1, -1, 0); // Adjust position as needed
-			scene.add(directionalLight);
-			const directionalLight2 = new THREE.DirectionalLight(0xebebeb, 1);
-			directionalLight2.position.set(-1, 1, 0); // Adjust position as needed
-			scene.add(directionalLight2);
-			const directionalLight3 = new THREE.DirectionalLight(0xebebeb, 1);
-			directionalLight3.position.set(0, 0, 1); // Adjust position as needed
-			scene.add(directionalLight3);
 
+			const directionalLight = new THREE.DirectionalLight(0xebebeb, 1);
+			directionalLight.position.set(0.5, 1.25, 0); // Adjust position as needed
+			scene.add(directionalLight);
 			directionalLight.layers.enable(1);
+
+			const directionalLight2 = new THREE.DirectionalLight(0xebebeb, 1);
+			directionalLight2.position.set(-1, 0.2, 1); // Adjust position as needed
+			scene.add(directionalLight2);
 			directionalLight2.layers.enable(1);
+
+			const directionalLight3 = new THREE.DirectionalLight(0xebebeb, 1);
+			directionalLight3.position.set(0, -1, -1.5); // Adjust position as needed
+			scene.add(directionalLight3);
 			directionalLight3.layers.enable(1);
+
+			// render and post-processing
 
 			renderer = new THREE.WebGLRenderer({ antialias: false });
 			renderer.setPixelRatio(window.devicePixelRatio);
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			renderer.autoClear = true;
+			renderer.localClippingEnabled = true;
 			container.appendChild(renderer.domElement);
 
 			const composer = new EffectComposer(renderer);
@@ -116,16 +129,21 @@
 			const outputPass = new OutputPass();
 			composer.addPass(outputPass);
 
+			//
+			//
+			// Geometries
+			//
+			//
+
 			polyGeo = new THREE.TetrahedronGeometry(1024);
 			polyMat = new THREE.MeshPhysicalMaterial({
 				color: background,
 				metalness: 0.5, // Adjust metalness and roughness as needed
 				roughness: 0.5,
-				side: THREE.DoubleSide
+				side: THREE.BackSide
 			});
 			polyMesh = new THREE.Mesh(polyGeo, polyMat);
 
-			
 			wireGeo = new THREE.TetrahedronGeometry(1024);
 			const edgesGeometry = new THREE.EdgesGeometry(wireGeo);
 			wireMat = new THREE.LineBasicMaterial({
@@ -135,26 +153,200 @@
 			});
 			wireMesh = new THREE.LineSegments(edgesGeometry, wireMat);
 			wireMesh.renderOrder = 1;
-			
-			coreGeo = new THREE.DodecahedronGeometry(window.innerHeight / 7.3, 3);
+
+			coreGeo = new THREE.DodecahedronGeometry(window.innerHeight * 0.05, 3);
 			coreMat = new THREE.MeshPhysicalMaterial({
-				color: background,
+				color: foreground,
 				transparent: true,
 				metalness: 0.5, // Adjust metalness and roughness as needed
 				roughness: 0.5,
-				clearcoat: 0.1
+				clearcoat: 0.5
 			});
 			coreMesh = new THREE.Mesh(coreGeo, coreMat);
-			coreMesh.renderOrder = 2;
+			coreMesh.renderOrder = 3;
 			coreMesh.layers.set(1);
-			
-			meshRotator = new THREE.Group();
-			meshRotator.add(polyMesh);
-			meshRotator.add(wireMesh);
-			meshRotator.add(coreMesh);
-			scene.add(meshRotator);
 
-			//movement
+			interface Pendulum {
+				frequency: number;
+				amplitude: number;
+				phase: number;
+				damping: number;
+			}
+
+			let pendulums: Pendulum[] = [
+				{ frequency: 4, amplitude: 11, phase: 0, damping: 0.003 },
+				{ frequency: 4, amplitude: 256, phase: Math.PI / 5, damping: 0.01 },
+				{ frequency: 4, amplitude: 128, phase: Math.PI / 2, damping: 0.001 },
+				{ frequency: 4, amplitude: 256, phase: Math.PI / 2, damping: 0.00001 }
+			];
+
+			function createHarmonographGeo(
+				duration: number,
+				pendulums: Pendulum[],
+				steps: number = 10000
+			): THREE.BufferGeometry {
+				const points: THREE.Vector3[] = [];
+				for (let i = 0; i < steps; i++) {
+					let x: number = 0;
+					let y: number = 0;
+					let z: number = 0;
+					const t = (duration / steps) * i;
+					const rotAngle =
+						pendulums[0].amplitude *
+						Math.exp(-pendulums[0].damping * t) *
+						Math.cos(pendulums[0].frequency * t + pendulums[0].phase);
+
+					x +=
+						pendulums[1].amplitude *
+						Math.exp(-pendulums[1].damping * t) *
+						Math.cos(pendulums[1].frequency * t + pendulums[1].phase + rotAngle);
+
+					y +=
+						pendulums[2].amplitude *
+						Math.exp(-pendulums[2].damping * t) *
+						Math.cos(pendulums[2].frequency * t + pendulums[2].phase + rotAngle);
+
+					z +=
+						pendulums[3].amplitude *
+						Math.exp(-pendulums[3].damping * t) *
+						Math.cos(pendulums[3].frequency * t + pendulums[3].phase + rotAngle);
+
+					points.push(new THREE.Vector3(x, y, 0)); // temporarily making z = 0 to focus on x&y
+				}
+				return new THREE.BufferGeometry().setFromPoints(points);
+			}
+
+			harmonographGeo = createHarmonographGeo(64, pendulums);
+
+			const positions = harmonographGeo.attributes.position;
+			const points = [];
+			for (let i = 0; i < positions.count; i++) {
+				points.push(new THREE.Vector3().fromBufferAttribute(positions, i));
+			}
+
+			const curve = new THREE.CatmullRomCurve3(points);
+			const harmonoGeo = new THREE.TubeGeometry(curve, 8192, 2, 32, false);
+			harmonoMat = new THREE.MeshPhysicalMaterial({
+				color: foreground,
+				transparent: true,
+				metalness: 0.5, // Adjust metalness and roughness as needed
+				roughness: 0.5,
+				clearcoat: 0.5
+			});
+			harmonoMesh = new THREE.Mesh(harmonoGeo, harmonoMat);
+			harmonoMesh.renderOrder = 2;
+			harmonoMesh.layers.set(1);
+
+			polyMat.clippingPlanes = [clipPlane];
+			polyMat.clipIntersection = false;
+			wireMat.clippingPlanes = [clipPlane];
+			wireMat.clipIntersection = false;
+
+			spaceRotator = new THREE.Group();
+			coreRotator = new THREE.Group();
+			spaceRotator.add(polyMesh);
+			spaceRotator.add(wireMesh);
+			coreRotator.add(coreMesh);
+			coreRotator.add(harmonoMesh);
+			scene.add(spaceRotator);
+			scene.add(coreRotator);
+
+			//
+			//
+			// handle user inputs
+			//
+			//
+
+			let isHovering = false; // track hover state
+			let isAnimating = false; // track if animation is currently playing
+			let forwardTween = new TWEEN.Tween(harmonoMesh.rotation)
+				.to({ x: Math.PI / -2, z: Math.PI / 2 }, 500)
+				.easing(TWEEN.Easing.Exponential.Out)
+				.onStart(() => {
+					isAnimating = true;
+				})
+				.onComplete(() => {
+					isAnimating = false;
+				});
+			let reverseTween = new TWEEN.Tween(harmonoMesh.rotation)
+				.to({ x: 0, y: 0, z: 0 }, 500) // Resetting y and z rotations
+				.easing(TWEEN.Easing.Exponential.Out)
+				.onStart(() => {
+					isAnimating = false;
+				})
+				.onComplete(() => {
+					isAnimating = false;
+				});
+
+			handleMouseMove = (event: MouseEvent) => {
+				const raycaster = new THREE.Raycaster();
+				const mouse = new THREE.Vector2();
+				targetMouseX = event.clientX - window.innerWidth / 2;
+				targetMouseY = event.clientY - window.innerHeight / 2;
+				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+				mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+				raycaster.setFromCamera(mouse, orthoCamera);
+				raycaster.layers.set(1);
+				const intersects = raycaster.intersectObjects([coreMesh]);
+
+				let currentlyHovering = intersects.length > 0;
+
+				if (currentlyHovering !== isHovering) {
+					isHovering = currentlyHovering;
+					if (isHovering) {
+						reverseTween.stop(); // Stop the reverse tween
+						forwardTween = new TWEEN.Tween(harmonoMesh.rotation) // Reinitialize the tween from current position
+							.to({ x: Math.PI / -2, z: Math.PI / 2 }, 500)
+							.easing(TWEEN.Easing.Exponential.Out)
+							.onStart(() => {
+								isAnimating = true;
+							})
+							.onComplete(() => {
+								isAnimating = false;
+							});
+						forwardTween.start();
+					} else {
+						forwardTween.stop(); // Stop the forward tween
+						reverseTween = new TWEEN.Tween(harmonoMesh.rotation) // Reinitialize the tween from current position
+							.to({ x: 0, y: 0, z: 0 }, 1000) // Resetting y and z rotations
+							.easing(TWEEN.Easing.Exponential.Out)
+							.onStart(() => {
+								isAnimating = true;
+							})
+							.onComplete(() => {
+								isAnimating = false;
+							});
+						reverseTween.start();
+					}
+				}
+			};
+
+			handleTouchMove = (event: TouchEvent) => {
+				if (event.touches.length > 0) {
+					targetMouseX = event.touches[0].clientX - window.innerWidth / 2;
+					targetMouseY = event.touches[0].clientY - window.innerHeight / 2;
+				}
+			};
+
+			handleResize = (event: UIEvent) => {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+
+				composer.setSize(window.innerWidth, window.innerHeight);
+				const pixelRatio = renderer.getPixelRatio();
+				fxaaPass.material.uniforms['resolution'].value.set(
+					1 / (window.innerWidth * pixelRatio),
+					1 / (window.innerHeight * pixelRatio)
+				);
+			};
+
+			//
+			//
+			// Animation
+			//
+			//
 
 			const update = () => {
 				mouseX = ease(targetMouseX, mouseX);
@@ -169,27 +361,13 @@
 					new THREE.Vector3(-1, 0, 0),
 					scroll * 0.0008
 				);
-				meshRotator.quaternion.multiplyQuaternions(mouseQuaternion, scrollQuaternion);
+				spaceRotator.quaternion.multiplyQuaternions(mouseQuaternion, scrollQuaternion);
+				coreRotator.quaternion.copy(mouseQuaternion);
 			};
-
-			unsubscribeScroll = scrollStore.subscribe(($scrollstore) => {
-				const { distanceToBottom } = $scrollStore;
-				const fadeDistance = 256; // Distance over which the fade-in effect occurs
-
-				// Calculate opacity based on distance to bottom
-				let opacityControl = Math.max(1 - distanceToBottom / fadeDistance, 0);
-
-				if (coreMesh.material instanceof THREE.MeshPhysicalMaterial) {
-					coreMesh.material.opacity = opacityControl;
-				}
-				
-			});
-
-			const footerHeight = window.innerHeight;
-			const transitionEnd = document.body.scrollHeight - footerHeight;
 
 			const animate = () => {
 				requestAnimationFrame(animate);
+				TWEEN.update();
 				update();
 
 				// Render the scene with the perspective camera
@@ -208,36 +386,24 @@
 
 			animate();
 
-			handleResize = (event: UIEvent) => {
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-				renderer.setSize(window.innerWidth, window.innerHeight);
+			unsubscribeScroll = scrollStore.subscribe(($scrollstore) => {
+				const { distanceToBottom } = $scrollStore;
+				const fadeDistance = 512; // Distance over which the fade-in effect occurs
 
-				composer.setSize(window.innerWidth, window.innerHeight);
-				const pixelRatio = renderer.getPixelRatio();
-				fxaaPass.material.uniforms['resolution'].value.set(
-					1 / (window.innerWidth * pixelRatio),
-					1 / (window.innerHeight * pixelRatio)
-				);
-			};
+				// Calculate opacity based on distance to bottom
+				let opacityControl = Math.max(1 - distanceToBottom / fadeDistance, 0);
 
-			handleMouseMove = (event: MouseEvent) => {
-				targetMouseX = event.clientX - window.innerWidth / 2;
-				targetMouseY = event.clientY - window.innerHeight / 2;
-			};
-
-			handleTouchMove = (event: TouchEvent) => {
-				if (event.touches.length > 0) {
-					targetMouseX = event.touches[0].clientX - window.innerWidth / 2;
-					targetMouseY = event.touches[0].clientY - window.innerHeight / 2;
+				if (coreMesh.material instanceof THREE.MeshPhysicalMaterial) {
+					coreMesh.material.opacity = opacityControl;
 				}
-			};
-
+				if (harmonoMesh.material instanceof THREE.MeshPhysicalMaterial) {
+					harmonoMesh.material.opacity = opacityControl;
+				}
+			});
 			window.onscroll = () => (targetScroll = window.scrollY);
 			window.addEventListener('resize', handleResize);
 			document.addEventListener('mousemove', handleMouseMove);
 			document.addEventListener('touchmove', handleTouchMove);
-
 			updateScene($theme as keyof typeof polyspaceColors);
 		}
 	});
@@ -260,8 +426,9 @@
 		if (scene && polyMat && wireMat) {
 			scene.background = new THREE.Color(background);
 			polyMat.color.set(background);
-			coreMat.color.set(background);
 			wireMat.color.set(foreground);
+			coreMat.color.set(foreground);
+			harmonoMat.color.set(foreground);
 		}
 	}
 
@@ -270,4 +437,4 @@
 	}
 </script>
 
-<div bind:this={container} id="polyspace" />
+<div bind:this={container} id="polyspace" style="z-index: 9999" />
