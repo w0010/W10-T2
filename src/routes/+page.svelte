@@ -7,7 +7,7 @@
 </script>
 
 <main>
-	<section>
+	<section id="styles">
 		<h2>Styles</h2>
 		<strong>Procedural</strong>
 		<strong>Cyberpunk</strong>
@@ -51,5 +51,9 @@
 		font-variation-settings: 'wght' 500, 'wdth' 150, 'slnt' -10;
 		transition: font-variation-settings 100ms ease-out; /* ease-out for hover-in */
 
+	}
+
+	#styles {
+		height: calc(90vh - var(--header-height))
 	}
 </style>

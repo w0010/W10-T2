@@ -1,3 +1,4 @@
+<!-- src/routes/about/+page.svelte -->
 <script lang="ts">
     import SkillBar from "$lib/SkillBar.svelte";
 </script>

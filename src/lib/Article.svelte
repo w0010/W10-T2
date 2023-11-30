@@ -15,6 +15,7 @@
 </article>
 
 <style>
+	/* `:global()` reaches children of <Article> when used as component */
 	article {
 		display: flex;
 		padding-top: var(--header-height);

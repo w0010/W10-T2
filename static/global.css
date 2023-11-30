@@ -10,7 +10,7 @@
     --dark: hsla(216, 7%, 11%, 1);
     --grey: hsla(202, 5%, 61%, 1);
     --light: hsla(0, 0%, 90%, 1);
-    --white: hsla(0, 0%, 90%, 1);
+    --white: hsla(0, 0%, 93%, 1);
     --bright-color: rgb(0, 255, 157);
     --bright-color-faded: rgba(0, 255, 157, 0.25);
     --deep-color: rgb(255, 0, 123);
@@ -27,12 +27,12 @@
 }
 
 [data-theme='dark'] {
-    --bg-color: var(--dark) !important;
-    --text-color: var(--light) !important;
-    --bg-color2: var(--black) !important;
-    --text-color2: var(--white) !important;
-    --neon-color: var(--bright-color) !important;
-    --faded-color: var(--bright-color-faded) !important;
+    --bg-color: var(--dark);
+    --text-color: var(--light);
+    --bg-color2: var(--black);
+    --text-color2: var(--white);
+    --neon-color: var(--bright-color);
+    --faded-color: var(--bright-color-faded);
 }
 
 * {
@@ -60,15 +60,6 @@ body .theme-provider {
     transition: 0.4s;
     position: relative;
 }
-
-canvas {
-    background: var(--bg-color);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: -1;
-}
-
 
 figure {
     margin: 0
@@ -154,13 +145,14 @@ section {
     padding: var(--header-height) 0;
 }
 
-section > :is(a, abbr, article, h1, h2, h3, p) {
+section > :is(a, abbr, article, button, h2, h3, p, strong) {
     margin-left: var(--margin);
     margin-right: var(--margin);
 }
 
 section :is(a, abbr, h2, h3, p, strong) {
     padding-left: var(--padding);
+    padding-right: var(--padding);
 }
 
 strong {
@@ -168,6 +160,7 @@ strong {
     font-size: 1.7em;
     font-variation-settings: "wght" 500, "wdth" 100, "slnt" -10;
     letter-spacing: 0.05em;
+    line-height: 1.1em;
     font-weight: unset;
     text-transform: uppercase;
 }

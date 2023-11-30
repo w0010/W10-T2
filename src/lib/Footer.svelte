@@ -1,7 +1,3 @@
-<script>
- import Button from "$lib/Button.svelte";
-</script>
-
 <footer>
 	<h2>Contact</h2>
 	<abbr title="Wooten Tattoo">W10-T2 <span>Tech-Noir Biomechanica</span></abbr>
@@ -35,9 +31,9 @@
 	
 	footer abbr span {
 		display: block;
-		font-size: 0.29em;
+		font-size: 12px;
 		font-variation-settings: 'wght' 500, 'wdth' 100, 'slnt' 0;
-		letter-spacing: 0.2vw;
+		letter-spacing: 0.42vw;
 		text-transform: uppercase;
 	}
 	
@@ -61,40 +57,47 @@
 			100% 100%,
 			0% 100%
 		);
-		padding-top: 7vh;
-		padding-bottom: 3vh;
+		padding-top: 5vh;
+		padding-bottom: 1vh;
 		text-align: center;
 	}	.question p {
 		font-variation-settings: 'wght' 600, 'slnt' -10;
 		padding: 0;
 	}
 	
+	.answer {
+		align-items: center;
+		display: flex;
+		justify-content: center;
+		height: 100%;
+	}
 
 	.answer button {
 		background: none;
 		border: none;
+		color: var(--text-color);
 		font-family: var(--font);
 		font-size: 5vmin;
-		font-variation-settings: 'wght' 700, 'wdth' 100, 'slnt' 0;
-		color: var(--bg-color2);
+		font-variation-settings: 'wght' 900, 'wdth' 100, 'slnt' 0;
+		letter-spacing: 0.03em;
+		padding: 12px;
 		text-transform: uppercase;
-		text-shadow: 0 0 8px var(--text-color);
-		padding: 0;
-		transition: font-variation-settings 500ms ease-in-out;
+		transition: font-variation-settings 333ms ease-in-out;
 	}
 	
 	.answer button:hover {
 		cursor: pointer;
 		font-variation-settings: 'wght' 900, 'wdth' 200, 'slnt' -10;
-		transition: font-variation-settings 500ms ease-in-out;
+		transition: font-variation-settings 333ms ease-in-out;
 	}
 
 	.shokunin {
-		background: var(--text-color);
-		color: var(--bg-color);
-		font-size: 16px;
+		backdrop-filter: blur(32px);
+		color: var(--text-color);
+		font-size: 12px;
 		letter-spacing: 0.12em;
-		padding: 1em 0;
+		padding-top: 8px;
+		padding-bottom: 11px;
 		margin: 0;
 		text-align: center;
 	}

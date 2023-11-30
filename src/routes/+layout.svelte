@@ -12,3 +12,9 @@
 	<Footer />
 	<Polyspace />
 </div>
+
+<style>
+	:global(article, footer, section) {
+		backdrop-filter: blur(4px);
+	}
+</style>
