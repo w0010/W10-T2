@@ -15,6 +15,6 @@
 
 <style>
 	:global(article, footer, section) {
-		backdrop-filter: blur(4px);
+		backdrop-filter: blur(0px);
 	}
 </style>

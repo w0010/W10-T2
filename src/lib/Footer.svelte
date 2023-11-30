@@ -77,9 +77,9 @@
 		border: none;
 		color: var(--text-color);
 		font-family: var(--font);
-		font-size: 5vmin;
-		font-variation-settings: 'wght' 900, 'wdth' 100, 'slnt' 0;
-		letter-spacing: 0.03em;
+		font-size: calc(12px + 5vmin);
+		font-variation-settings: 'wght' 800, 'wdth' 100, 'slnt' 0;
+		letter-spacing: 0.02em;
 		padding: 12px;
 		text-transform: uppercase;
 		transition: font-variation-settings 333ms ease-in-out;
@@ -93,6 +93,8 @@
 
 	.shokunin {
 		backdrop-filter: blur(32px);
+		background-color: var(--bg-color2);
+		border-top: 1px dotted var(--text-color);
 		color: var(--text-color);
 		font-size: 12px;
 		letter-spacing: 0.12em;
