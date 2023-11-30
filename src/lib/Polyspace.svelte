@@ -184,10 +184,10 @@
 			}
 
 			let pendulums: Pendulum[] = [
-				{ frequency: 2, amplitude: Math.PI / 2.3, phase: 0, damping: 0.005 }, // Rotary pendulum
-				{ frequency: 2.006, amplitude: coreSize * 2.25, phase: Math.PI / 2, damping: 0.009 }, // x
-				{ frequency: 6.001, amplitude: coreSize * 2.25, phase: Math.PI / 2, damping: 0.002 }, // y
-				{ frequency: 4.001, amplitude: coreSize * 2.25, phase: Math.PI / 2, damping: 0.007 } // z
+				{ frequency: 3, amplitude: Math.PI / 2.3, phase: 0, damping: 0.005 }, // Rotary pendulum
+				{ frequency: 3, amplitude: coreSize * 2.25, phase: Math.PI / 2, damping: 0.009 }, // x
+				{ frequency: 9, amplitude: coreSize * 2.25, phase: Math.PI / 2, damping: 0.002 }, // y
+				{ frequency: 6, amplitude: coreSize * 2.25, phase: Math.PI / 2, damping: 0.007 } // z
 			];
 
 			function createHarmonographGeo(
@@ -248,7 +248,7 @@
 
 			const curve = new THREE.CatmullRomCurve3(points);
 
-			const harmonoGeo = new THREE.TubeGeometry(curve, 1024 * 16, 0.42, 8, false);
+			const harmonoGeo = new THREE.TubeGeometry(curve, 1024 * 32, 0.5, 8, false);
 
 			harmonoMat = new THREE.MeshPhysicalMaterial({
 				transparent: true,
@@ -419,7 +419,7 @@
 				spaceRotator.quaternion.multiplyQuaternions(mouseQuaternion, scrollQuaternionForSpace); // default 0 rotation at scrolltop, rotated at bottom
 				coreRotator.quaternion.multiplyQuaternions(mouseQuaternion, scrollQuaternionForCore); // 0 rotation at Bottom, rotated at scrolltop (for correct orientation when at bottom)
 
-				const rotationIncrement = 0.0002; // Adjust this value for subtleness
+				const rotationIncrement = 0.0004; // Adjust this value for subtleness
 
 				idleRotation += rotationIncrement; // Increment total rotation
 				const incrementalQuaternionX = new THREE.Quaternion().setFromAxisAngle(
