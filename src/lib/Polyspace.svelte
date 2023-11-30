@@ -162,7 +162,7 @@
 			}
 			const vmin = getVmin();
 
-			let coreSize = vmin * 0.07;
+			let coreSize = vmin * 0.066;
 			coreGeo = new THREE.DodecahedronGeometry(
 				Math.min(window.innerWidth, window.innerHeight) * 0.07,
 				3

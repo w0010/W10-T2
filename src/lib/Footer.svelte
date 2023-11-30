@@ -92,7 +92,6 @@
 	}
 
 	.shokunin {
-		backdrop-filter: blur(32px);
 		background-color: var(--bg-color2);
 		border-top: 1px dotted var(--text-color);
 		color: var(--text-color);

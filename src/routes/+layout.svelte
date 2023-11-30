@@ -13,8 +13,8 @@
 	<Polyspace />
 </div>
 
-<style>
+<!-- <style>
 	:global(article, footer, section) {
-		backdrop-filter: blur(0px);
+		backdrop-filter: blur(8px);
 	}
-</style>
+</style> -->
