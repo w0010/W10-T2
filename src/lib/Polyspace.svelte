@@ -274,9 +274,10 @@
 			//
 
 			let isHovering = false; // track hover state
-
 			handleMouseMove = (event: MouseEvent) => {
 				const mouse = new THREE.Vector2();
+				const button = document.querySelector('.answer button');
+
 				mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 				mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 				targetMouseX = event.clientX - window.innerWidth / 2;
@@ -289,7 +290,6 @@
 					.to({ x: 0, y: 0, z: 0 }, 667) // Resetting y and z rotations
 					.easing(TWEEN.Easing.Exponential.InOut);
 
-				const button = document.querySelector('.answer button');
 				if (button) {
 					const rect = button.getBoundingClientRect();
 					const currentlyHovering =
